@@ -21,6 +21,7 @@
 
 package io.nayuki.flac.encode;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -107,48 +108,49 @@ final class RiceEncoder {
 
 	// Calculates the number of bits needed to encode the sequence of values
 	// data[start : end] with an optimally chosen Rice parameter.
-	private static long computeBestSizeAndParam(long[] data, int start, int end) {
-		assert data != null && 0 <= start && start <= end && end <= data.length;
+	public static long computeBestSizeAndParam(long[] data, int start, int end) {
+		assert data != null && 0 <= start && start <= end && end <= data.length; // 1
 
 		// Use escape code
-		int bestParam;
+		int bestParam; //2
 		long bestSize;
-		{
-			long accumulator = 0;
-			for (int i = start; i < end; i++) {
-				long val = data[i];
-				accumulator |= val ^ (val >> 63);
-			}
-			int numBits = 65 - Long.numberOfLeadingZeros(accumulator);
-			assert 1 <= numBits && numBits <= 65;
-			if (numBits <= 31) {
-				bestSize = 4 + 5 + (end - start) * numBits;
-				bestParam = 16 + numBits;
-				if ((bestParam >>> 6) != 0)
-					throw new AssertionError();
-			} else {
-				bestSize = Long.MAX_VALUE;
-				bestParam = 0;
-			}
+		long accumulator = 0;
+		for (int i = start; i < end; i++) { //3, 6 & 5
+			long val = data[i]; // 4
+			accumulator |= val ^ (val >> 63);
+		}
+
+		int numBits = 65 - Long.numberOfLeadingZeros(accumulator); // 7 accumulator >= 35
+		assert 1 <= numBits && numBits <= 65; // 8
+		if (numBits <= 31) { // 9
+			bestSize = 4 + 5 + (end - start) * numBits; // 10
+			bestParam = 16 + numBits;
+			if ((bestParam >>> 6) != 0) // 11 -> best param < 0 || best param >= 64
+				throw new AssertionError();
+		} else { // 12
+			bestSize = Long.MAX_VALUE;
+			bestParam = 0;
 		}
 
 		// Use Rice coding
-		for (int param = 0; param <= 14; param++) {
-			long size = 4;
-			for (int i = start; i < end; i++) {
-				long val = data[i];
-				if (val >= 0)
-					val <<= 1;
+		for (int param = 0; param <= 14; param++) { // 13, 26 & 25
+			long size = 4; // 14
+			for (int i = start; i < end; i++) { // 15, 22 & 21
+				long val = data[i]; // 16
+				if (val >= 0) // 17
+					val <<= 1; // 18
 				else
-					val = ((-val) << 1) - 1;
-				size += (val >>> param) + 1 + param;
+					val = ((-val) << 1) - 1; // 19
+				System.out.println(val);
+				size += (val >>> param) + 1 + param; // 20
 			}
-			if (size < bestSize) {
-				bestSize = size;
+			if (size < bestSize) { // 23
+				bestSize = size; // 24
 				bestParam = param;
 			}
 		}
-		return bestSize << 6 | bestParam;
+
+		return bestSize << 6 | bestParam; // 27
 	}
 
 	/*---- Functions for encoding data ---*/
@@ -202,19 +204,18 @@ final class RiceEncoder {
 		}
 	}
 
-	public static RiceEncodedObject writeRiceSignedInt(long val, int param, BitOutputStream out)
+	public static void writeRiceSignedInt(long val, int param, BitOutputStream out)
 			throws AssertionError, IOException {
-		assert 0 <= param && param <= 31 && out != null;
-		assert (val >> 52) == 0 || (val >> 52) == -1; // Fits in a signed int53
 
-		long unsigned = val >= 0 ? val << 1 : ((-val) << 1) - 1;
+		assert 0 <= param && param <= 31 && out != null; // 1
+		assert (val >> 52) == 0 || (val >> 52) == -1; // Fits in a signed int53 // 2
+
+		long unsigned = val >= 0 ? val << 1 : ((-val) << 1) - 1; // 3
 		int unary = (int) (unsigned >>> param);
-		for (int i = 0; i < unary; i++)
-			out.writeInt(1, 0);
-		out.writeInt(1, 1);
+		for (int i = 0; i < unary; i++) // 4, 7 & 6
+			out.writeInt(1, 0);	// 5
+		out.writeInt(1, 1); // 8
 		out.writeInt(param, (int) unsigned);
-
-		return new RiceEncodedObject(unsigned, unary);
 	}
 
 }

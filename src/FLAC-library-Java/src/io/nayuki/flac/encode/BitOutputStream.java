@@ -170,5 +170,9 @@ public final class BitOutputStream implements AutoCloseable {
 			out = null;
 		}
 	}
+
+	public int getBitBufferLen() {
+		return bitBufferLen;
+	}
 	
 }
