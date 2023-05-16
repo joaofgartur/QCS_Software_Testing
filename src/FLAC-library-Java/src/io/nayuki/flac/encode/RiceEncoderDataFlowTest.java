@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,10 +20,10 @@ public class RiceEncoderDataFlowTest {
         return hexString.toString();
     }
 
-    /* ---- param ---- */
     @Test
     void testCase1() throws IOException {
-        BitOutputStream output = new BitOutputStream(new FileOutputStream("testCase.txt"));
+        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase1.bin";
+        BitOutputStream output = new BitOutputStream(new FileOutputStream(filename));
         long val = 100;
         int param = -1;
 
@@ -33,52 +32,54 @@ public class RiceEncoderDataFlowTest {
 
     @Test
     void testCase2() throws IOException {
-        BitOutputStream output = new BitOutputStream(new FileOutputStream("testCase.txt"));
+        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase2.bin";
+        BitOutputStream output = new BitOutputStream(new FileOutputStream(filename));
         long val = 100;
         int param = 32;
 
         assertThrows(AssertionError.class, () -> RiceEncoder.writeRiceSignedInt(val, param, output));
     }
 
-    /* ---- param & val & unsigned ---- */
     @Test
     void testCase3() throws IOException {
-        BitOutputStream output = new BitOutputStream(new FileOutputStream("testCase.txt"));
+        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase3.bin";
+        BitOutputStream output = new BitOutputStream(new FileOutputStream(filename));
         long val = 100;
         int param = 10;
 
-        assertEquals(0, output.getByteCount());
-        /*
-        RiceEncodedObject result = RiceEncoder.writeRiceSignedInt(val, param, output);
+        RiceEncoder.writeRiceSignedInt(val, param, output);
 
-        assertEquals(0, result.getUnary());
-        assertEquals(200, result.getUnsigned());
-        assertTrue(output.getByteCount() > 0);
-        */
+        output.alignToByte();
+        output.close();
+
+        String expected  = "9900";
+        String result = readBinaryFileIntoString(filename);
+
+        assertEquals(expected, result);
     }
 
-    /* ---- val ---- */
     @Test
     void testCase4() throws IOException {
-        BitOutputStream output = new BitOutputStream(new FileOutputStream("testCase.txt"));
+        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase4.bin";
+        BitOutputStream output = new BitOutputStream(new FileOutputStream(filename));
         long val = 9007199254740993L;
         int param = 10;
+
+        System.out.println(val >> 52);
 
         assertThrows(AssertionError.class, () -> RiceEncoder.writeRiceSignedInt(val, param, output));
     }
 
-    /* ---- val & unsigned ---- */
     @Test
     void testCase5() throws IOException {
-        String filename = "testCase5.bin";
-
+        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase5.bin";
         BitOutputStream output = new BitOutputStream(new FileOutputStream(filename));
         long val = -100;
         int param = 10;
 
         RiceEncoder.writeRiceSignedInt(val, param, output);
 
-        while (output.getBitBufferLen() % 8 != 0) output.writeInt(1, 0);
+        output.alignToByte();
         output.close();
 
         String expected  = "98E0";
@@ -87,31 +88,50 @@ public class RiceEncoderDataFlowTest {
         assertEquals(expected, result);
     }
 
-    /* ---- val ---- */
-    @org.junit.jupiter.api.Test
-    void testCase6() {
-        BitOutputStream output = null;
-        long val = 100;
-        int param = -1;
+    @Test
+    void testCase6() throws IOException {
+        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase6.bin";
+        BitOutputStream output = new BitOutputStream(new FileOutputStream(filename));
+        long val = -100;
+        int param = 10;
 
-        assertThrows(AssertionError.class, () -> RiceEncoder.writeRiceSignedInt(val, param, output));
+        output.close();
+        RiceEncoder.writeRiceSignedInt(val, param, output);
+
+        output.alignToByte();
+        output.close();
+
+        String expected  = "";
+        String result = readBinaryFileIntoString(filename);
+
+        assertEquals(expected, result);
     }
 
-    /* ---- val & unary & i---- */
-    @org.junit.jupiter.api.Test
+    @Test
     void testCase7() throws IOException {
-        BitOutputStream output = new BitOutputStream(new FileOutputStream("testCase.txt"));
+        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase7.bin";
+        BitOutputStream output = new BitOutputStream(new FileOutputStream(filename));
         long val = 1024;
         int param = 10;
 
-        assertEquals(0, output.getByteCount());
-        /*
-        RiceEncodedObject result = RiceEncoder.writeRiceSignedInt(val, param, output);
+        RiceEncoder.writeRiceSignedInt(val, param, output);
 
-        assertEquals(2, result.getUnary());
-        assertEquals(2048, result.getUnsigned());
-        assertTrue(output.getByteCount() > 0);
-         */
+        output.alignToByte();
+        output.close();
+
+        String expected  = "3000";
+        String result = readBinaryFileIntoString(filename);
+
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void testCase8() {
+        BitOutputStream output = null;
+        long val = 100;
+        int param = 10;
+
+        assertThrows(AssertionError.class, () -> RiceEncoder.writeRiceSignedInt(val, param, output));
     }
 
 }
