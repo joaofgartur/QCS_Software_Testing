@@ -1,14 +1,18 @@
-package io.nayuki.flac.encode;
+package io.nayuki.flac.encode.tests.white_box.data_flow;
 
+import io.nayuki.flac.encode.BitOutputStream;
+import io.nayuki.flac.encode.RiceEncoder;
 import org.junit.jupiter.api.Test;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class RiceEncoderDataFlowTest {
+public class TestCasesWriteRiceSignedInt {
 
     public String readBinaryFileIntoString(String filename) throws IOException {
         byte[] fileBytes = Files.readAllBytes(Paths.get(filename));
@@ -21,8 +25,8 @@ public class RiceEncoderDataFlowTest {
     }
 
     @Test
-    void testCase1() throws IOException {
-        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase1.bin";
+    void testCase9() throws IOException {
+        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase9.bin";
         BitOutputStream output = new BitOutputStream(new FileOutputStream(filename));
         long val = 100;
         int param = -1;
@@ -31,8 +35,8 @@ public class RiceEncoderDataFlowTest {
     }
 
     @Test
-    void testCase2() throws IOException {
-        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase2.bin";
+    void testCase10() throws IOException {
+        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase10.bin";
         BitOutputStream output = new BitOutputStream(new FileOutputStream(filename));
         long val = 100;
         int param = 32;
@@ -41,8 +45,8 @@ public class RiceEncoderDataFlowTest {
     }
 
     @Test
-    void testCase3() throws IOException {
-        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase3.bin";
+    void testCase11() throws IOException {
+        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase11.bin";
         BitOutputStream output = new BitOutputStream(new FileOutputStream(filename));
         long val = 100;
         int param = 10;
@@ -59,20 +63,18 @@ public class RiceEncoderDataFlowTest {
     }
 
     @Test
-    void testCase4() throws IOException {
-        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase4.bin";
+    void testCase12() throws IOException {
+        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase12.bin";
         BitOutputStream output = new BitOutputStream(new FileOutputStream(filename));
         long val = 9007199254740993L;
         int param = 10;
-
-        System.out.println(val >> 52);
 
         assertThrows(AssertionError.class, () -> RiceEncoder.writeRiceSignedInt(val, param, output));
     }
 
     @Test
-    void testCase5() throws IOException {
-        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase5.bin";
+    void testCase13() throws IOException {
+        String filename = "testCasesOutputs/whiteBox/dataFlow/13.bin";
         BitOutputStream output = new BitOutputStream(new FileOutputStream(filename));
         long val = -100;
         int param = 10;
@@ -89,10 +91,19 @@ public class RiceEncoderDataFlowTest {
     }
 
     @Test
-    void testCase6() throws IOException {
-        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase6.bin";
+    void testCase14() {
+        BitOutputStream output = null;
+        long val = 100;
+        int param = -1;
+
+        assertThrows(AssertionError.class, () -> RiceEncoder.writeRiceSignedInt(val, param, output));
+    }
+
+    @Test
+    void testCase15() throws IOException {
+        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase14.bin";
         BitOutputStream output = new BitOutputStream(new FileOutputStream(filename));
-        long val = -100;
+        long val = 100;
         int param = 10;
 
         output.close();
@@ -107,9 +118,11 @@ public class RiceEncoderDataFlowTest {
         assertEquals(expected, result);
     }
 
+
+
     @Test
-    void testCase7() throws IOException {
-        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase7.bin";
+    void testCase16() throws IOException {
+        String filename = "testCasesOutputs/whiteBox/dataFlow/testCase16.bin";
         BitOutputStream output = new BitOutputStream(new FileOutputStream(filename));
         long val = 1024;
         int param = 10;
@@ -123,15 +136,6 @@ public class RiceEncoderDataFlowTest {
         String result = readBinaryFileIntoString(filename);
 
         assertEquals(expected, result);
-    }
-
-    @Test
-    void testCase8() {
-        BitOutputStream output = null;
-        long val = 100;
-        int param = 10;
-
-        assertThrows(AssertionError.class, () -> RiceEncoder.writeRiceSignedInt(val, param, output));
     }
 
 }
